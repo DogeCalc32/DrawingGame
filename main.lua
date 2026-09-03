@@ -11,14 +11,17 @@ function love.load()
         dx = 0,
         dy = 0,
         speed = 100,
-        drawRadius = 5,
+        drawRadius = 8,
         size = 3,
         color = { 0, 0, 0 }
     }
     mouseMode = false
     randMoveTimer = 0
+    overloadDots = false
     time = 0
     dots = {}
+    dotnumber = 1
+    dotRemoveTimer = 65
 end
 
 local function spawnDot(x, y)
@@ -27,6 +30,7 @@ local function spawnDot(x, y)
         y = y,
         size = marker.drawRadius,
         color = marker.color,
+        number = dotnumber,
     })
 end
 
@@ -47,9 +51,9 @@ function love.update(dt)
 
     randMoveTimer = randMoveTimer + dt
 
-    if time > 55 then
+    if time > dotRemoveTimer then
         time = 0
-        love.keypressed("c")
+        overloadDots = true
     end
 
     if randMoveTimer > 3 then
@@ -81,6 +85,9 @@ function love.update(dt)
     end
 
     spawnDot(marker.x, marker.y)
+    if overloadDots then
+        table.remove(dots, dotnumber)
+    end
 
     marker.x = marker.x + marker.dx * dt
     marker.y = marker.y + marker.dy * dt
@@ -91,8 +98,10 @@ function love.keypressed(key)
         mouseMode = not mouseMode
     end
     if key == "c" then
-        time = 0
         dots = {}
+    end
+    if key == "escape" then
+        love.event.quit()
     end
 end
 
