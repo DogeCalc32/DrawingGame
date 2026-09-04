@@ -15,6 +15,7 @@ function love.load()
         size = 3,
         color = { 0, 0, 0 }
     }
+    arrowSprite = love.graphics.newImage("arrow.png")
     mouseMode = false
     randMoveTimer = 0
     overloadDots = false
@@ -22,6 +23,7 @@ function love.load()
     dots = {}
     dotnumber = 1
     dotRemoveTimer = 65
+    dotLimit = 165000
 end
 
 local function spawnDot(x, y)
@@ -44,31 +46,20 @@ end
 function love.update(dt)
     deltaTime = dt
     time = time + dt
-    marker.dx, marker.dy = 0, 0
-    if mouseMode then
-        marker.x, marker.y = love.mouse.getPosition()
-    end
+    -- marker.dx, marker.dy = 0, 0
 
     randMoveTimer = randMoveTimer + dt
 
-    if time > dotRemoveTimer then
+    if #dots > dotLimit then
         time = 0
         overloadDots = true
+    else
+        overloadDots = false
     end
 
     if randMoveTimer > 3 then
         randMoveTimer = 0
         marker.color = getRandomColor()
-    end
-
-    if dir == "up" then
-        marker.dy = marker.speed * -1
-    elseif dir == "down" then
-        marker.dy = marker.speed * 1
-    elseif dir == "left" then
-        marker.dx = marker.speed * -1
-    elseif dir == "right" then
-        marker.dx = marker.speed * 1
     end
 
     if love.keyboard.isDown("left") then
@@ -84,13 +75,36 @@ function love.update(dt)
         marker.dy = marker.speed * 1
     end
 
-    spawnDot(marker.x, marker.y)
+    if mouseMode then
+        marker.x, marker.y = love.mouse.getPosition()
+    end
+    if mouseMode then
+        if love.mouse.isDown(1) then
+            spawnDot(marker.x, marker.y)
+        end
+    else
+        spawnDot(marker.x, marker.y)
+    end
     if overloadDots then
         table.remove(dots, dotnumber)
     end
 
+    if marker.x < 0 then
+        marker.dx = math.abs(marker.dx)
+    end
+    if marker.x > w then
+        marker.dx = -math.abs(marker.dx)
+    end
+    if marker.y < 0 then
+        marker.dy = math.abs(marker.dx)
+    end
+    if marker.y > h then
+        marker.dy = -math.abs(marker.dx)
+    end
+
     marker.x = marker.x + marker.dx * dt
     marker.y = marker.y + marker.dy * dt
+    dotLimit = math.floor(1 / deltaTime * 100)
 end
 
 function love.keypressed(key)
@@ -99,6 +113,7 @@ function love.keypressed(key)
     end
     if key == "c" then
         dots = {}
+        overloadDots = false
     end
     if key == "escape" then
         love.event.quit()
@@ -109,11 +124,12 @@ function love.draw()
     love.graphics.setColor(.9, .9, .9)
     love.graphics.rectangle("fill", 0, 0, w, h)
 
-    for _, dot in ipairs(dots) do
+    for _, dot in ipairs(dots) do -- dot drawing loop
         love.graphics.setColor(dot.color[1], dot.color[2], dot.color[3])
         love.graphics.circle("fill", dot.x, dot.y, dot.size)
     end
-    love.graphics.setColor(marker.color[1], marker.color[2], marker.color[3])
     love.graphics.draw(marker.sprite, marker.x, marker.y, nil, marker.size, marker.size)
+
     love.graphics.print(math.floor(1 / deltaTime), 10, 10)
+    love.graphics.print(love.timer.getFPS(), 10, 25)
 end
