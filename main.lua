@@ -15,7 +15,6 @@ function love.load()
         size = 3,
         color = { 0, 0, 0 }
     }
-    arrowSprite = love.graphics.newImage("arrow.png")
     mouseMode = false
     randMoveTimer = 0
     overloadDots = false
